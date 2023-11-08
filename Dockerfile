@@ -1,4 +1,4 @@
-FROM sergeykutsko86/base_image:latest
+FROM python:3.10
 USER nobody
 RUN sudo mkdir -p /app
 WORKDIR /app
