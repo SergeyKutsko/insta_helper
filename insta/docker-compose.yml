@@ -6,7 +6,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    build: .
+    build: ..
     ports:
       - "8080:8080"
     command: honcho start
@@ -45,7 +45,7 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: "insta_helper_dev@example.com"
       PGADMIN_DEFAULT_PASSWORD: "insta_helper_dev"
-      PGADMIN_CONFIG_SEVER_MODE: "FALSE"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
     volumes:
       - ./pgadmin:/var/lib/pgadmin
     ports:
