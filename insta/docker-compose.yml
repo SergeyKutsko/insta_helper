@@ -1,18 +1,5 @@
 version: "3.9"
 services:
-  web:
-    container_name: insta_helper_web
-    platform: linux/amd64
-    depends_on:
-      postgres:
-        condition: service_healthy
-    build: ..
-    ports:
-      - "8080:8080"
-    command: honcho start
-    volumes:
-      - .:/app
-
   postgres:
     container_name: insta_helper_postgres
     image: postgres:13.8
@@ -56,3 +43,26 @@ services:
         limits:
           cpus: '0.5'
           memory: 1G
+  redis:
+    container_name: insta_helper_redis
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+  web:
+    container_name: insta_helper_web
+    platform: linux/arm64
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    build: .
+    ports:
+      - "8080:8080"
+    command: honcho start
+    volumes:
+      - .:/app

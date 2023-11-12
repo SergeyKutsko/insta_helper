@@ -1,2 +1,2 @@
 web: bash ./entrypoint.sh
-worker: celery -A auto worker --beat --loglevel=info --pool=solo
+worker: celery -A insta worker --beat --loglevel=info --pool=solo
