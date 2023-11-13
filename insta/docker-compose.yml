@@ -1,0 +1,68 @@
+version: "3.9"
+services:
+  postgres:
+    container_name: insta_helper_postgres
+    image: postgres:13.8
+    environment:
+      POSTGRES_DB: 'insta_helper_dev'
+      POSTGRES_USER: 'insta_helper_dev'
+      POSTGRES_PASSWORD: 'pass'
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U insta_helper_dev -d insta_helper_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+  pgadmin:
+    container_name: insta_helper_pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    image: dpage/pgadmin4:6.14
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "insta_helper_dev@example.com"
+      PGADMIN_DEFAULT_PASSWORD: "insta_helper_dev"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+  redis:
+    container_name: insta_helper_redis
+    image: redis:6.2-alpine
+    restart: always
+    command: redis-server --save 20 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+  web:
+    container_name: insta_helper_web
+    platform: linux/arm64
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    build: .
+    ports:
+      - "8080:8080"
+    command: honcho start
+    volumes:
+      - .:/app
