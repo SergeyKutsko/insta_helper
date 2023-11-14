@@ -1,13 +1,15 @@
-FROM python:3.10
-USER root
-RUN mkdir -p /app
-WORKDIR /.
-COPY ./requirements.txt .
-RUN apt-get update && apt-get install -y sudo
-RUN apt-get install gettext -y
-RUN pip install -r requirements.txt
+FROM sergeykutsko86/base_image:latest
+USER nobody
+RUN sudo mkdir -p /app
+WORKDIR /app
+COPY requirements.txt .
+RUN sudo apt-get update
+RUN sudo apt-get install gettext -y
+RUN sudo pip install -r requirements.txt
 
+RUN sudo rm /etc/nginx/sites-enabled/default
+RUN sudo rm /etc/nginx/sites-available/default
 COPY . .
 COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
-RUN chown nobody:nogroup /app
-EXPOSE 8080
+RUN sudo chown nobody:nogroup /app
+EXPOSE 8080 44300
