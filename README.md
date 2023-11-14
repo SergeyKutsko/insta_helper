@@ -8,4 +8,4 @@
 5.Run make build    
 6.Run migrations by docker exec -it insta_helper_dev python3 manage.py migrate    
 7.Run migrations by docker exec -it insta_helper_dev python3 manage.py createsuperuser    
-8.Open http://localhost/admin/ in browser an
+8.Open http://localhost/admin/ in browser and auth with user created at step 7
