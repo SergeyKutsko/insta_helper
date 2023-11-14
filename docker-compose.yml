@@ -60,7 +60,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    build: insta
+    build: .
     ports:
       - "8080:8080"
     command: honcho start
