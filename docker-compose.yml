@@ -36,7 +36,7 @@ services:
     volumes:
       - ./pgadmin:/var/lib/pgadmin
     ports:
-      - "5050:80"
+      - "5050:5050"
     restart: unless-stopped
     deploy:
       resources:
@@ -54,7 +54,7 @@ services:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
   web:
     container_name: insta_helper_web
-    platform: linux/arm64
+    platform: linux/amd64
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,7 +62,7 @@ services:
         condition: service_healthy
     build: .
     ports:
-      - "8080:8080"
+      - "80:80"
     command: honcho start
     volumes:
       - .:/app
