@@ -12,4 +12,5 @@ RUN sudo rm /etc/nginx/sites-available/default
 COPY . .
 COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
 RUN sudo chown nobody:nogroup /app
-EXPOSE 8080 44300
+EXPOSE 8080
+CMD ["honcho", "start"]
