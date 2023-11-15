@@ -1,5 +1,5 @@
 from django.db import models
-from instagapi import Client
+from instagrapi import Client
 from scripts.encode import encrypt_value, decrypt_value
 
 
