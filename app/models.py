@@ -64,4 +64,11 @@ class Limit(models.Model):
         verbose_name = 'Обмеження інстаграма'
         verbose_name_plural = 'Обмеження інстаграма'
 
+    @staticmethod
+    def get_limit(name, default):
+        limit_value = Limit.objects.filter(name=name).values('limit').first()
+        if limit_value is not None:
+            return int(limit_value.get('limit', default))
+        return None
+
 
