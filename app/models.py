@@ -21,10 +21,10 @@ class InstagramUser(models.Model):
     password = models.BinaryField(verbose_name="Пароль")
     password_key = models.BinaryField(verbose_name="Ключ для пароля")
     main = models.BooleanField(default=False, verbose_name="Головна сторінка")
+    system = models.BooleanField(default=False, verbose_name="Системна сторінка")
     follower = models.IntegerField(default=0, verbose_name="Читачі")
     track = models.IntegerField(default=0, verbose_name="Підписники")
     target = models.IntegerField(default=0, verbose_name="Ціль підписників")
-    sum = models.IntegerField(default=0, verbose_name="Вартість просування")
     teg = models.ManyToManyField(Teg, verbose_name="Теги")
 
     class Meta:
@@ -32,7 +32,7 @@ class InstagramUser(models.Model):
         verbose_name_plural = 'Користувачі інтаграма'
 
     def __str__(self):
-        return f'{self.login} {self.password}'
+        return f'{self.login}'
 
     def save(self, *args, **kwargs):
         try:
@@ -72,3 +72,59 @@ class Limit(models.Model):
         return None
 
 
+class Income(models.Model):
+    class Currency(models.TextChoices):
+        UAH = 'UAH', 'Гривня',
+        USD = 'USD', 'Долар',
+        EUR = 'EUR', 'Євро',
+
+    class Meta:
+        verbose_name = 'Дохід'
+        verbose_name_plural = 'Доходи'
+
+    sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Вартість просування")
+    currency = models.CharField(max_length=3, default=Currency.UAH, choices=Currency.choices,
+                                verbose_name='Валюта')
+    user = models.ForeignKey(InstagramUser, on_delete=models.CASCADE, verbose_name="Інстаграм користувач")
+    created_at = models.DateTimeField(editable=False, auto_now_add=True,
+                                      verbose_name='Додано дохід')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='Оновлено')
+
+    def __str__(self):
+        return self.currency
+
+
+class UserID(models.Model):
+    user_id = models.IntegerField(verbose_name="Номер сторінки в інстаграмі")
+    teg = models.ForeignKey(Teg, on_delete=models.CASCADE, verbose_name="Тег")
+
+    class Meta:
+        verbose_name = 'Індифікатор користувачів по тегу'
+        verbose_name_plural = 'Індифікатори користувачів по тегу'
+
+    def __str__(self):
+        return str(self.user_id)
+
+
+class Template(models.Model):
+    key = models.CharField(max_length=255, verbose_name="Ключ")
+    value = models.TextField(verbose_name="Шаблон відповіді")
+
+    class Meta:
+        verbose_name = 'Шаблон'
+        verbose_name_plural = 'Шаблони'
+
+    def __str__(self):
+        return self.value
+
+
+class SystemSetting(models.Model):
+    key = models.CharField(max_length=255, verbose_name="Ключ")
+    value = models.CharField(max_length=255, verbose_name="Значення")
+
+    class Meta:
+        verbose_name = 'Налаштування'
+        verbose_name_plural = 'Налаштування'
+
+    def __str__(self):
+        return self.value
