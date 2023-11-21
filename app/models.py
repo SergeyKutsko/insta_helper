@@ -116,3 +116,15 @@ class Template(models.Model):
 
     def __str__(self):
         return self.value
+
+
+class SystemSetting(models.Model):
+    key = models.CharField(max_length=255, verbose_name="Ключ")
+    value = models.CharField(max_length=255, verbose_name="Значення")
+
+    class Meta:
+        verbose_name = 'Налаштування'
+        verbose_name_plural = 'Налаштування'
+
+    def __str__(self):
+        return self.value

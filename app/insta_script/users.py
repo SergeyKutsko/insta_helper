@@ -10,8 +10,10 @@ def following_to_user_by_followers(cl: Client, user_id: str, amount: int = 0) ->
         ----------
         cl: Client object
             Instagram client object
+
         user_id: str
             Username for an Instagram account(ID)
+
         amount: int, optional
             Maximum number of media to return, default is 0 -
             amount=0 - fetch all
@@ -36,8 +38,10 @@ def unfollowing_to_user_by_followers(cl: Client, user_id: str, amount: int = 0) 
         ----------
         cl: Client object
             Instagram client object
+
         user_id: str
             Username for an Instagram account(ID)
+
         amount: int, optional
             Maximum number of media to return, default is 0 -
             amount=0 - fetch all
@@ -61,8 +65,10 @@ def following_to_user_by_following(cl: Client, user_id: str, amount: int = 0) ->
         ----------
         cl: Client object
             Instagram client object
+
         user_id: str
             Username for an Instagram account(ID)
+
         amount: int, optional
             Maximum number of media to return, default is 0 -
             amount=0 - fetch all
@@ -86,8 +92,10 @@ def unfollowing_to_user_by_following(cl: Client, user_id: str, amount: int = 0) 
         ----------
         cl: Client object
             Instagram client object
+
         user_id: str
             Username for an Instagram account(ID)
+
         amount: int, optional
             Maximum number of media to return, default is 0 -
             amount=0 - fetch all
