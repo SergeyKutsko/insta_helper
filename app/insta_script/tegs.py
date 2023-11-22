@@ -1,5 +1,5 @@
 from instagrapi import Client
-from .variables import delay
+from app.insta_script.variables import delay
 from typing import List
 
 

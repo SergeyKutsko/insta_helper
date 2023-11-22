@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import InstagramUser, Teg, Limit, Income, UserID, Template
+from .models import InstagramUser, Teg, Limit, Income, UserID, Template, SystemSetting
 
 
 @admin.register(Teg)
@@ -10,7 +10,7 @@ class TegAdmin(admin.ModelAdmin):
 
 @admin.register(InstagramUser)
 class InstagramUserAdmin(admin.ModelAdmin):
-    list_display = ['login', 'password', 'name', 'second_name', 'main', 'follower', 'track', 'target', ]
+    list_display = ['login', 'password', 'name', 'second_name', 'main', 'follower', 'track', 'target', 'active',]
     list_editable = ['name', 'second_name', 'main', 'target',]
     list_filter = ['main', ]
     search_fields = ['login', 'name', 'second_name',]
@@ -33,5 +33,10 @@ class UserIDAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
+    list_display = ['key', 'value', ]
+
+
+@admin.register(SystemSetting)
+class SystemSettingAdmin(admin.ModelAdmin):
     list_display = ['key', 'value', ]
 
