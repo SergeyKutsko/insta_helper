@@ -1,5 +1,5 @@
 from insagrapi import Client
-from .variables import delay
+from app.insta_script.variables import delay
 
 
 def following_to_user_by_followers(cl: Client, user_id: str, amount: int = 0) -> None:
@@ -110,3 +110,12 @@ def unfollowing_to_user_by_following(cl: Client, user_id: str, amount: int = 0) 
         cl.user_unfollow(user_id)
         delay(cl)
 
+
+def follow(cl: Client, user_id: str) -> bool:
+    cl.user_follow(user_id)
+    delay(cl)
+
+
+def unfollow(cl: Client, user_id: str) -> bool:
+    cl.user_unfollow(user_id)
+    delay(cl)

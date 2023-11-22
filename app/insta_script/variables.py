@@ -1,4 +1,5 @@
-from .app.models import Limit
+from app.models import Limit
+from instagrapi import Client
 
 
 delay_min = Limit.get_limit('MIN_DELAY', 1)

@@ -1,4 +1,5 @@
-from django.db import models
+from django.db import models, IntegrityError
+from django.core.exceptions import ObjectDoesNotExist
 from instagrapi import Client
 from scripts.encode import encrypt_value, decrypt_value
 
@@ -22,6 +23,7 @@ class InstagramUser(models.Model):
     password_key = models.BinaryField(verbose_name="Ключ для пароля")
     main = models.BooleanField(default=False, verbose_name="Головна сторінка")
     system = models.BooleanField(default=False, verbose_name="Системна сторінка")
+    active = models.BooleanField(default=True, verbose_name="Активувати")
     follower = models.IntegerField(default=0, verbose_name="Читачі")
     track = models.IntegerField(default=0, verbose_name="Підписники")
     target = models.IntegerField(default=0, verbose_name="Ціль підписників")
@@ -101,9 +103,18 @@ class UserID(models.Model):
     class Meta:
         verbose_name = 'Індифікатор користувачів по тегу'
         verbose_name_plural = 'Індифікатори користувачів по тегу'
+        constraints = [
+            models.UniqueConstraint(fields=['user_id', 'teg'], name='unique_user_teg')
+        ]
 
     def __str__(self):
-        return str(self.user_id)
+        return self.teg
+
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except IntegrityError as e:
+            raise ValidationError(f'Saving error: customer with this ID and tag is already active. {e}')
 
 
 class Template(models.Model):
@@ -128,3 +139,12 @@ class SystemSetting(models.Model):
 
     def __str__(self):
         return self.value
+
+    @staticmethod
+    def get_value(key, default=100):
+        try:
+            value = SystemSetting.objects.get(key=key)
+        except ObjectDoesNotExist:
+            return default
+        return value
+
