@@ -1,4 +1,4 @@
-from insagrapi import Client
+from instagrapi import Client
 from app.insta_script.variables import delay
 
 

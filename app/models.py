@@ -19,10 +19,10 @@ class InstagramUser(models.Model):
     name = models.CharField(max_length=255, verbose_name="Імя", null=True, blank=True)
     second_name = models.CharField(max_length=255, verbose_name="Прізвище", null=True, blank=True)
     login = models.CharField(max_length=255, verbose_name="Логін")
-    password = models.BinaryField(verbose_name="Пароль")
-    password_key = models.BinaryField(verbose_name="Ключ для пароля")
+    password = models.CharField(max_length=255, verbose_name="Пароль")
     main = models.BooleanField(default=False, verbose_name="Головна сторінка")
     system = models.BooleanField(default=False, verbose_name="Системна сторінка")
+    uniq_following = models.BooleanField(default=False, verbose_name="Унікальність підписок")
     active = models.BooleanField(default=True, verbose_name="Активувати")
     follower = models.IntegerField(default=0, verbose_name="Читачі")
     track = models.IntegerField(default=0, verbose_name="Підписники")
@@ -43,7 +43,6 @@ class InstagramUser(models.Model):
         except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
             raise ValidationError('Incorrect tributes') from e
         else:
-            self.password, self.password_key = encrypt_value(self.password)
             super().save(*args, **kwargs)
 
     @staticmethod
@@ -52,7 +51,7 @@ class InstagramUser(models.Model):
             setting = InstagramUser.objects.get(pk)
         except ObjectDoesNotExist:
             return f"Key {pk} does not exist"
-        return decrypt_value(bytes(setting.password_key), bytes(setting.password))
+        return setting.login, setting.password
 
 
 class Limit(models.Model):
