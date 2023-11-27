@@ -11,7 +11,6 @@ class TegAdmin(admin.ModelAdmin):
 @admin.register(InstagramUser)
 class InstagramUserAdmin(admin.ModelAdmin):
     list_display = ['login', 'password', 'name', 'second_name', 'main', 'follower', 'track', 'target', 'active',]
-    list_editable = ['name', 'second_name', 'main', 'target',]
     list_filter = ['main', ]
     search_fields = ['login', 'name', 'second_name',]
 
