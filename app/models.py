@@ -2,32 +2,43 @@ from django.db import models, IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from instagrapi import Client
 from scripts.encode import encrypt_value, decrypt_value
+from django.core.validators import MaxValueValidator
+from django.contrib.auth.models import User
 
 
-class Teg(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Назва")
+class CustomUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return self.name
+        return str(self.user.username) if self.user else ''
+
+    @classmethod
+    def get_user(cls, pk):
+        return cls.objects.get(id=pk)
 
     class Meta:
-        verbose_name = 'Тег'
-        verbose_name_plural = 'Теги'
+        verbose_name = 'Власники'
+        verbose_name_plural = 'Власники'
 
 
 class InstagramUser(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Імя", null=True, blank=True)
-    second_name = models.CharField(max_length=255, verbose_name="Прізвище", null=True, blank=True)
-    login = models.CharField(max_length=255, verbose_name="Логін")
-    password = models.CharField(max_length=255, verbose_name="Пароль")
-    main = models.BooleanField(default=False, verbose_name="Головна сторінка")
-    system = models.BooleanField(default=False, verbose_name="Системна сторінка")
-    uniq_following = models.BooleanField(default=False, verbose_name="Унікальність підписок")
-    active = models.BooleanField(default=True, verbose_name="Активувати")
-    follower = models.IntegerField(default=0, verbose_name="Читачі")
-    track = models.IntegerField(default=0, verbose_name="Підписники")
-    target = models.IntegerField(default=0, verbose_name="Ціль підписників")
-    teg = models.ManyToManyField(Teg, verbose_name="Теги")
+    class Age(models.TextChoices):
+        FIRST = 'FIRST', '0 - 21'
+        SECOND = 'SECOND', '21 - 90'
+        THIRD = 'THIRD', '90 - 180'
+        LAST = 'LAST', '180+'
+
+    login = models.CharField(max_length=255, validators=[MaxValueValidator(255), ],
+                             verbose_name="Логін")
+    password = models.BinaryField(verbose_name="Пароль")
+    password_key = models.BinaryField(verbose_name="Ключ для пароля", null=True, blank=True)
+    age = models.CharField(max_length=6, default=Age.FIRST, choices=Age.choices,
+                           verbose_name='Вік профілю (дні)')
+    message = models.IntegerField(default=0, verbose_name="Кількість повідомлень - надіслані")
+    user = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
 
     class Meta:
         verbose_name = 'Користувач Інстаграма'
@@ -43,6 +54,7 @@ class InstagramUser(models.Model):
         except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
             raise ValidationError('Incorrect tributes') from e
         else:
+            self.password, self.password_key = encrypt_value(self.password)
             super().save(*args, **kwargs)
 
     @staticmethod
@@ -51,7 +63,7 @@ class InstagramUser(models.Model):
             setting = InstagramUser.objects.get(pk)
         except ObjectDoesNotExist:
             return f"Key {pk} does not exist"
-        return setting.login, setting.password
+        return decrypt_value(bytes(setting.password_key), bytes(setting.password))
 
 
 class Limit(models.Model):
@@ -71,49 +83,6 @@ class Limit(models.Model):
         if limit_value is not None:
             return int(limit_value.get('limit', default))
         return None
-
-
-class Income(models.Model):
-    class Currency(models.TextChoices):
-        UAH = 'UAH', 'Гривня',
-        USD = 'USD', 'Долар',
-        EUR = 'EUR', 'Євро',
-
-    class Meta:
-        verbose_name = 'Дохід'
-        verbose_name_plural = 'Доходи'
-
-    sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Вартість просування")
-    currency = models.CharField(max_length=3, default=Currency.UAH, choices=Currency.choices,
-                                verbose_name='Валюта')
-    user = models.ForeignKey(InstagramUser, on_delete=models.CASCADE, verbose_name="Інстаграм користувач")
-    created_at = models.DateTimeField(editable=False, auto_now_add=True,
-                                      verbose_name='Додано дохід')
-    updated_at = models.DateTimeField(auto_now=True, verbose_name='Оновлено')
-
-    def __str__(self):
-        return self.currency
-
-
-class UserID(models.Model):
-    user_id = models.IntegerField(verbose_name="Номер сторінки в інстаграмі")
-    teg = models.ForeignKey(Teg, on_delete=models.CASCADE, verbose_name="Тег")
-
-    class Meta:
-        verbose_name = 'Індифікатор користувачів по тегу'
-        verbose_name_plural = 'Індифікатори користувачів по тегу'
-        constraints = [
-            models.UniqueConstraint(fields=['user_id', 'teg'], name='unique_user_teg')
-        ]
-
-    def __str__(self):
-        return self.teg
-
-    def save(self, *args, **kwargs):
-        try:
-            super().save(*args, **kwargs)
-        except IntegrityError as e:
-            raise ValidationError(f'Saving error: customer with this ID and tag is already active. {e}')
 
 
 class Template(models.Model):
