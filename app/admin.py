@@ -10,7 +10,7 @@ class CustomUser(admin.ModelAdmin):
 
 @admin.register(InstagramUser)
 class InstagramUserAdmin(admin.ModelAdmin):
-    list_display = ['login', 'age', 'message', 'user']
+    list_display = ['login', 'age', 'user']
     search_fields = ['login', ]
 
 
