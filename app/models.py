@@ -34,7 +34,6 @@ class InstagramUser(models.Model):
     password_key = models.BinaryField(verbose_name="Ключ для пароля", null=True, blank=True)
     age = models.CharField(max_length=6, default=Age.FIRST, choices=Age.choices,
                            verbose_name='Вік профілю (дні)')
-    message = models.IntegerField(default=0, verbose_name="Кількість повідомлень - надіслані")
     user = models.ForeignKey(CustomUser, null=True, blank=True,
                              on_delete=models.CASCADE, verbose_name="Користувач")
 
@@ -115,4 +114,45 @@ class SystemSetting(models.Model):
         except ObjectDoesNotExist:
             return default
         return value
+
+
+class Message(models.Model):
+    following = models.BooleanField(default=False, verbose_name="Конкурент")
+    recipient = models.CharField(max_length=255, verbose_name="Отримувач")
+    direct_message = models.TextField(verbose_name="Текст повідомлення")
+    user = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
+
+    class Meta:
+        verbose_name = 'Дані розсилки'
+        verbose_name_plural = 'Дані розсилки'
+
+
+class UserId(models.Model):
+    url = models.CharField(max_length=255, verbose_name="Силка на сторінку")
+    page_id = models.CharField(max_length=255, verbose_name="Отримувач")
+    user = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
+
+    class Meta:
+        verbose_name = 'Список користувачів'
+        verbose_name_plural = 'Список користувачів'
+
+
+class ListName(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Назва списку")
+    user_list = models.ManyToManyField(UserId, verbose_name="Список користувачів")
+    user = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
+
+    class Meta:
+        verbose_name = 'Список'
+        verbose_name_plural = 'Списки'
+
+
+
 
