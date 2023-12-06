@@ -68,6 +68,7 @@ class InstagramUser(models.Model):
 class Limit(models.Model):
     name = models.CharField(max_length=255, verbose_name="Імя")
     limit = models.IntegerField(verbose_name="Обмеження")
+    description = models.CharField(max_length=255, verbose_name="Опис")
 
     def __str__(self):
         return str(self.limit)
@@ -99,6 +100,7 @@ class Template(models.Model):
 class SystemSetting(models.Model):
     key = models.CharField(max_length=255, verbose_name="Ключ")
     value = models.CharField(max_length=255, verbose_name="Значення")
+    description = models.CharField(max_length=255, verbose_name="Опис")
 
     class Meta:
         verbose_name = 'Налаштування'

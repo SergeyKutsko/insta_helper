@@ -111,11 +111,24 @@ def unfollowing_to_user_by_following(cl: Client, user_id: str, amount: int = 0) 
         delay(cl)
 
 
-def follow(cl: Client, user_id: str) -> bool:
+def follow(cl: Client, user_id: str) -> None:
     cl.user_follow(user_id)
     delay(cl)
 
 
-def unfollow(cl: Client, user_id: str) -> bool:
+def unfollow(cl: Client, user_id: str) -> None:
     cl.user_unfollow(user_id)
     delay(cl)
+
+
+def get_user_id_by_url(cl: Client, url: str) -> int or None:
+    try:
+        username = url.split('/')[-2]
+        delay(cl)
+        user_id = cl.user_id_from_username(username)
+        delay(cl)
+        return user_id
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        delay(cl)
+        return
