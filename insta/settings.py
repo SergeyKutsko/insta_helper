@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'app',
     'rest_framework',
+    'bootstrap4',
+    'crispy_forms',
 
 ]
 
@@ -149,3 +151,6 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_IMPORTS = [
     'insta.tasks',
 ]
+
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
