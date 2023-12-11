@@ -16,7 +16,7 @@ class InstagramUserAdmin(admin.ModelAdmin):
 
 @admin.register(Limit)
 class LimitAdmin(admin.ModelAdmin):
-    list_display = ['name', 'limit', ]
+    list_display = ['name', 'limit', 'description']
 
 
 @admin.register(Template)

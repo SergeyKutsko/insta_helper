@@ -68,7 +68,7 @@ class InstagramUser(models.Model):
 class Limit(models.Model):
     name = models.CharField(max_length=255, verbose_name="Імя")
     limit = models.IntegerField(verbose_name="Обмеження")
-    description = models.CharField(max_length=255, verbose_name="Опис")
+    description = models.CharField(max_length=255, null=True, blank=True, verbose_name="Опис")
 
     def __str__(self):
         return str(self.limit)
@@ -100,7 +100,11 @@ class Template(models.Model):
 class SystemSetting(models.Model):
     key = models.CharField(max_length=255, verbose_name="Ключ")
     value = models.CharField(max_length=255, verbose_name="Значення")
-    description = models.CharField(max_length=255, verbose_name="Опис")
+    description = models.CharField(max_length=255, null=True, blank=True, verbose_name="Опис")
+    user = models.ForeignKey(CustomUser, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+    account = models.ForeignKey(InstagramUser, null=True, blank=True,
+                                on_delete=models.CASCADE, verbose_name="Аккаунт")
 
     class Meta:
         verbose_name = 'Налаштування'
@@ -110,9 +114,9 @@ class SystemSetting(models.Model):
         return self.value
 
     @staticmethod
-    def get_value(key, default=100):
+    def get_value(key, pk, default=100):
         try:
-            value = SystemSetting.objects.get(key=key)
+            value = SystemSetting.objects.get(key=key, account=pk)
         except ObjectDoesNotExist:
             return default
         return value
@@ -154,6 +158,19 @@ class ListName(models.Model):
     class Meta:
         verbose_name = 'Список'
         verbose_name_plural = 'Списки'
+
+
+class Followers(models.Model):
+    page_id = models.CharField(max_length=255, verbose_name="Номер сторінки")
+    account = models.ForeignKey(CustomUser, null=True, blank=True,
+                                on_delete=models.CASCADE, verbose_name="Користувач")
+
+    class Meta:
+        verbose_name = 'Послідовувач'
+        verbose_name_plural = 'Послідовувачі'
+
+    def __str__(self):
+        return self.page_id
 
 
 
