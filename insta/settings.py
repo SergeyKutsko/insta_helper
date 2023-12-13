@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'bootstrap4',
     'crispy_forms',
+    'import_export',
 
 ]
 

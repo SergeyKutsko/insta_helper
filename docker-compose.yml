@@ -73,3 +73,4 @@ services:
       DB_HOST: postgres
       CELERY_BROKER_URL: redis://redis
       CELERY_RESULT_BACKEND: redis://redis
+      REDIS_URL: redis://redis
