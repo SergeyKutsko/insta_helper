@@ -1,4 +1,4 @@
-from app.models import Limit
+from app.models import Limit, InstagramUser
 
 # Normal limits for one account
 limits = {'LIMIT_IP': (10, 'Кількість сторінок на 1 IP'),                     # use of 10 accounts per IP address (count)
@@ -14,9 +14,12 @@ limits = {'LIMIT_IP': (10, 'Кількість сторінок на 1 IP'),    
 
 
 def run():
-    for key, (value, description) in limits.items():
-        Limit.objects.create(name=key, limit=value, description=description)
-
+    # for key, (value, description) in limits.items():
+    #     Limit.objects.create(name=key, limit=value, description=description)
+    print(1)
+    d = InstagramUser.get_password(3)
+    print(2)
+    print(d)
 
 
 
