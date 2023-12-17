@@ -14,6 +14,6 @@ def auto_login(client: Client, pk: str) -> None:
         client.locale = SystemSetting.get_value('LOCALE', pk)
         client.timezone_offset = int(SystemSetting.get_value('TIMEZONE_OFFSET', pk))
         client.login(user.login, InstagramUser.get_password(pk))
-        result = client.get_session()
+        result = client.get_settings()
         redis_instance().hset(pk, 'session_id', result['authorization_data']['sessionid'])
 

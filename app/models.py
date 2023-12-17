@@ -4,6 +4,7 @@ from instagrapi import Client
 from scripts.encode import encrypt_value, decrypt_value
 from django.core.validators import MaxLengthValidator
 from django.contrib.auth.models import User
+from scripts.redis_connect import redis_instance
 
 
 class InstagramUser(models.Model):
@@ -48,12 +49,15 @@ class InstagramUser(models.Model):
             cl.locale = self.locale
             cl.timezone_offset = self.timezone
             cl.login(self.login, self.password)
+            result = cl.get_settings()
         except (SMTPHeloError, SMTPAuthenticationError, SMTPNotSupportedError, SMTPException) as e:
             raise ValidationError('Incorrect tributes') from e
         else:
             self.password_secure, self.password_key = encrypt_value(self.password)
             self.password = ' '
             super().save(*args, **kwargs)
+            saved_pk = self.pk
+            redis_instance().hset(saved_pk, 'session_id', result['authorization_data']['sessionid'])
 
     @staticmethod
     def get_password(pk):
@@ -87,6 +91,8 @@ class Limit(models.Model):
 class Template(models.Model):
     key = models.CharField(max_length=255, verbose_name="Ключ")
     value = models.TextField(verbose_name="Шаблон відповіді")
+    user = models.ForeignKey(User, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
 
     class Meta:
         verbose_name = 'Шаблон'
@@ -94,6 +100,9 @@ class Template(models.Model):
 
     def __str__(self):
         return self.value
+
+    def save(self, *args, **kwargs):
+        self.key = f'FIRST_MESSAGE_'
 
 
 class SystemSetting(models.Model):
