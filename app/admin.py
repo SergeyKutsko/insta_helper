@@ -4,6 +4,7 @@ from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django import forms
+from .forms import UserIdForm, SendMessageByUrl
 
 
 @admin.register(InstagramUser)
@@ -16,6 +17,36 @@ class InstagramUserAdmin(admin.ModelAdmin):
             obj.user = User.objects.get(pk=request.user.id)
         super().save_model(request, obj, form, change)
 
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return [f.name for f in self.model._meta.fields]
+        else:
+            return ['login', 'age', 'system', 'country',
+                    'country_code', 'locale', 'timezone',
+                    ]
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            fieldsets = [
+                ('Дані', {'fields': ['login', 'password', 'age', 'system',
+                                     'country', 'country_code', 'locale',
+                                     'user', 'timezone',
+                                     ]
+                          }
+                 ),
+            ]
+        else:
+            fieldsets = [
+                ('Дані', {'fields': ['login', 'password', 'age', 'system',
+                                     'country', 'country_code', 'locale',
+                                     'timezone',
+                                     ]
+                          }
+                 ),
+            ]
+
+        return fieldsets
+
 
 @admin.register(Limit)
 class LimitAdmin(admin.ModelAdmin):
@@ -24,12 +55,37 @@ class LimitAdmin(admin.ModelAdmin):
 
 @admin.register(Template)
 class TemplateAdmin(admin.ModelAdmin):
-    list_display = ['key', 'value', ]
 
     def save_model(self, request, obj, form, change):
-        if not request.user.is_superuser:
+        if not request.user.is_superuser and not obj.user:
             obj.user = User.objects.get(pk=request.user.id)
         super().save_model(request, obj, form, change)
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            fieldsets = [
+                ('Дані', {'fields': ['key', 'value', 'user',
+                                     ]
+                          }
+                 ),
+            ]
+        else:
+            fieldsets = [
+                ('Дані', {'fields': ['value',
+                                     ]
+                          }
+                 ),
+            ]
+
+        return fieldsets
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return [f.name for f in self.model._meta.fields]
+        else:
+            return ['id', 'account', 'key',
+                    'value', 'description',
+                    ]
 
 
 @admin.register(SystemSetting)
@@ -56,16 +112,19 @@ class UserIdAdmin(ImportExportModelAdmin):
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
             fieldsets = [
-                ('Дані', {'fields': ['url', 'page_id', 'user'
-                                                 ]}),
-
+                ('Дані', {'fields': ['url', 'page_id', 'user',
+                                     ]
+                          }
+                 ),
             ]
         else:
             fieldsets = [
                 ('Дані', {'fields': ['url',
-                                     ]}),
-
+                                     ]
+                          }
+                 ),
             ]
+
         return fieldsets
 
     def save_model(self, request, obj, form, change):
@@ -93,14 +152,17 @@ class ListNameAdmin(admin.ModelAdmin):
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
             fieldsets = [
-                ('Дані', {'fields': ['name', 'user_list', 'user'
-                                                 ]}),
-
+                ('Дані', {'fields': ['name', 'user_list', 'user',
+                                     ]
+                          }
+                 ),
             ]
         else:
             fieldsets = [
                 ('Дані', {'fields': ['name',
-                                     ]}),
-
+                                     ]
+                          }
+                 ),
             ]
+
         return fieldsets

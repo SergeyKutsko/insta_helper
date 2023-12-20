@@ -5,3 +5,7 @@ settings_instagram_client = {
     "TIMEZONE": 7200,     # type(int) - Kiev, GMT+2 in seconds
 
 }
+
+
+welcome_default_value = 'Вставте шаблон для першого повідомлення'
+des_welcome = 'Повідомлення для нових підписників'
