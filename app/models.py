@@ -91,8 +91,11 @@ class Limit(models.Model):
 class Template(models.Model):
     key = models.CharField(max_length=255, verbose_name="Ключ")
     value = models.TextField(verbose_name="Шаблон відповіді")
+    description = models.CharField(max_length=255, null=True, blank=True, verbose_name='Опис')
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE, verbose_name="Користувач")
+    account = models.ForeignKey(InstagramUser, null=True, blank=True,
+                                on_delete=models.CASCADE, verbose_name="Акаунт")
 
     class Meta:
         verbose_name = 'Шаблон'
@@ -100,9 +103,6 @@ class Template(models.Model):
 
     def __str__(self):
         return self.value
-
-    def save(self, *args, **kwargs):
-        self.key = f'FIRST_MESSAGE_'
 
 
 class SystemSetting(models.Model):
