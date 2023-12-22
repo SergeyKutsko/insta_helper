@@ -160,7 +160,7 @@ class UserId(models.Model):
 
 
 class ListName(models.Model):
-    name = models.CharField(max_length=255, verbose_name="Назва списку")
+    name = models.CharField(max_length=255, verbose_name="Назва списку", unique=True)
     user_list = models.ManyToManyField(UserId, verbose_name="Список користувачів")
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE, verbose_name="Користувач")
@@ -169,6 +169,9 @@ class ListName(models.Model):
     class Meta:
         verbose_name = 'Список'
         verbose_name_plural = 'Списки'
+
+    def __str__(self):
+        return self.name
 
 
 class Followers(models.Model):
@@ -183,6 +186,38 @@ class Followers(models.Model):
     def __str__(self):
         return self.page_id
 
+
+class SendMessageByUrl(models.Model):
+    url = models.CharField(max_length=255, verbose_name="Лінк на сторінку")
+    direct_message = models.TextField(verbose_name="Текст повідомлення")
+    user = models.ForeignKey(User, null=True, blank=True,
+                             on_delete=models.CASCADE,
+                             verbose_name="Користувач")
+    accounts = models.ManyToManyField(InstagramUser,
+                                      verbose_name="Аккаунти")
+
+    created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
+
+    class Meta:
+        verbose_name = 'Розсилка по аккаунту'
+        verbose_name_plural = 'Розсилки по аккаунту'
+
+
+class SendMessageByList(models.Model):
+    lists = models.ManyToManyField(ListName, verbose_name="Списки")
+    direct_message = models.TextField(verbose_name="Текст повідомлення")
+    user = models.ForeignKey(User, null=True, blank=True,
+                             on_delete=models.CASCADE,
+                             verbose_name="Користувач")
+    accounts = models.ManyToManyField(InstagramUser,
+                                      verbose_name="Аккаунти")
+
+    created_at = models.DateTimeField(editable=False, auto_now_add=True,
+                                      verbose_name='Створено')
+
+    class Meta:
+        verbose_name = 'Розсилка по списку'
+        verbose_name_plural = 'Розсилки по списку'
 
 
 
