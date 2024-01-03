@@ -147,8 +147,9 @@ class Message(models.Model):
 class UserId(models.Model):
     url = models.CharField(max_length=255, verbose_name="Силка на сторінку")
     page_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="Отримувач")
-    user = models.ForeignKey(User, null=True, blank=True,
-                             on_delete=models.CASCADE, verbose_name="Користувач")
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             verbose_name="Користувач")
 
     def __str__(self):
         return self.url
@@ -175,13 +176,15 @@ class ListName(models.Model):
 
 
 class Followers(models.Model):
-    page_id = models.CharField(max_length=255, validators=[MaxLengthValidator(limit_value=255)], verbose_name="Номер сторінки")
+    page_id = models.CharField(max_length=255, validators=[MaxLengthValidator(limit_value=255)],
+                               verbose_name="Номер сторінки")
     account = models.ForeignKey(User, null=True, blank=True,
                                 on_delete=models.CASCADE, verbose_name="Користувач")
 
     class Meta:
         verbose_name = 'Послідовувач'
         verbose_name_plural = 'Послідовувачі'
+        unique_together = ['page_id', 'account']
 
     def __str__(self):
         return self.page_id
