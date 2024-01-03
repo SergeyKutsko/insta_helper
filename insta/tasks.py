@@ -70,7 +70,7 @@ def add_followers_to_instagram_user(account_id):
         unconfirmed_followers = [int(i) for i in unconfirmed_followers]
         cl.direct_send(text=template, user_ids=unconfirmed_followers)
         for page_id in unconfirmed_followers:
-            add_follower(page_id, account)
+            add_follower(page_id, account_id)
 
 
 # @app_insta.task
