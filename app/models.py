@@ -148,6 +148,7 @@ class UserId(models.Model):
     url = models.CharField(max_length=255, verbose_name="Силка на сторінку")
     page_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="Отримувач")
     user = models.ForeignKey(User,
+                             null=True, blank=True,
                              on_delete=models.CASCADE,
                              verbose_name="Користувач")
 
@@ -190,9 +191,24 @@ class Followers(models.Model):
         return self.page_id
 
 
+class MessageTemplate(models.Model):
+    key = models.CharField(max_length=255, verbose_name="Ключ")
+    value = models.TextField(verbose_name="Текст повідомлення")
+    user = models.ForeignKey(User,
+                             null=True, blank=True,
+                             on_delete=models.CASCADE,
+                             verbose_name="Користувач")
+
+    class Meta:
+        verbose_name = 'Шаблон повідомлень'
+        verbose_name_plural = 'Шаблони повідомлень'
+
+
 class SendMessageByUrl(models.Model):
     url = models.CharField(max_length=255, verbose_name="Лінк на сторінку")
-    direct_message = models.TextField(verbose_name="Текст повідомлення")
+    direct_message = models.ForeignKey(MessageTemplate,
+                                       on_delete=models.CASCADE,
+                                       verbose_name="Текст повідомлення")
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE,
                              verbose_name="Користувач")
@@ -208,7 +224,9 @@ class SendMessageByUrl(models.Model):
 
 class SendMessageByList(models.Model):
     lists = models.ManyToManyField(ListName, verbose_name="Списки")
-    direct_message = models.TextField(verbose_name="Текст повідомлення")
+    direct_message = models.ForeignKey(MessageTemplate,
+                                       on_delete=models.CASCADE,
+                                       verbose_name="Текст повідомлення")
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE,
                              verbose_name="Користувач")
@@ -221,6 +239,7 @@ class SendMessageByList(models.Model):
     class Meta:
         verbose_name = 'Розсилка по списку'
         verbose_name_plural = 'Розсилки по списку'
+
 
 
 
