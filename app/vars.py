@@ -9,3 +9,4 @@ settings_instagram_client = {
 
 welcome_default_value = 'Вставте шаблон для першого повідомлення'
 des_welcome = 'Повідомлення для нових підписників'
+m_template_value_default = 'Напишіть ваше повідомлення'

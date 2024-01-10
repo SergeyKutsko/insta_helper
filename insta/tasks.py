@@ -9,68 +9,68 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from app.insta_script.variables import delay
 from app.insta_script.login_by_session import auto_login
-import logging
-import os
-from django.db import IntegrityError
-import random
-from .vars import welcome_default_value
-
-
-logger = logging.getLogger(__name__)
-
-
-def get_template(account_id):
-    user = InstagramUser.objects.get(id=account_id)
-    user_id = user.id
-    while True:
-        numbers = random.randint(1, 15)
-        template = Template.objects.filter(key=f'WELCOME_{numbers}',
-                                           user=user_id,
-                                           account=account_id)
-        if template is not None and template != welcome_default_value:
-            break
-
-    return template
-
-
-def add_follower(page_id, account):
-    try:
-        follower = Followers.objects.create(page_id=page_id, account=account)
-        follower.save()
-        return
-    except IntegrityError:
-        return
-
-
-def create_queue_and_worker(queue_name):
-    if queue_name not in app_insta.conf.task_queues:
-        app_insta.conf.task_queues.append(queue_name)
-
-        # Create worker with new queue
-        worker_cmd = f'celery -A app_insta worker -Q {queue_name} -l info'
-        os.system(worker_cmd)
-
-        logger.info(f'Queue {queue_name} and worker have been created.')
-    else:
-        logger.info(f'Queue {queue_name} and worker have created')
-
-
-@app_insta.task()
-def add_followers_to_instagram_user(account_id):
-    create_queue_and_worker.delay(queue_name=account_id)
-    cl = Client()
-    auto_login(cl, str(account_id))
-    pk_instagram_pages = list(cl.account_info().dict()['pk'])
-
-    existing_followers = Followers.objects.filter(account=account_id, page_id__in=pk_instagram_pages)
-
-    unconfirmed_followers = list(set(pk_instagram_pages) - set(existing_followers.values_list('page_id', flat=True)))
-    if unconfirmed_followers:
-        template = get_template(account_id)
-        unconfirmed_followers = [int(i) for i in unconfirmed_followers]
-        cl.direct_send(text=template, user_ids=unconfirmed_followers)
-        for page_id in unconfirmed_followers:
-            add_follower(page_id, account_id)
+# import logging
+# import os
+# from django.db import IntegrityError
+# import random
+# from .vars import welcome_default_value
+#
+#
+# logger = logging.getLogger(__name__)
+#
+#
+# def get_template(account_id):
+#     user = InstagramUser.objects.get(id=account_id)
+#     user_id = user.id
+#     while True:
+#         numbers = random.randint(1, 15)
+#         template = Template.objects.filter(key=f'WELCOME_{numbers}',
+#                                            user=user_id,
+#                                            account=account_id)
+#         if template is not None and template != welcome_default_value:
+#             break
+#
+#     return template
+#
+#
+# def add_follower(page_id, account):
+#     try:
+#         follower = Followers.objects.create(page_id=page_id, account=account)
+#         follower.save()
+#         return
+#     except IntegrityError:
+#         return
+#
+#
+# def create_queue_and_worker(queue_name):
+#     if queue_name not in app_insta.conf.task_queues:
+#         app_insta.conf.task_queues.append(queue_name)
+#
+#         # Create worker with new queue
+#         worker_cmd = f'celery -A app_insta worker -Q {queue_name} -l info'
+#         os.system(worker_cmd)
+#
+#         logger.info(f'Queue {queue_name} and worker have been created.')
+#     else:
+#         logger.info(f'Queue {queue_name} and worker have created')
+#
+#
+# @app_insta.task()
+# def add_followers_to_instagram_user(account_id):
+#     create_queue_and_worker.delay(queue_name=account_id)
+#     cl = Client()
+#     auto_login(cl, str(account_id))
+#     pk_instagram_pages = list(cl.account_info().dict()['pk'])
+#
+#     existing_followers = Followers.objects.filter(account=account_id, page_id__in=pk_instagram_pages)
+#
+#     unconfirmed_followers = list(set(pk_instagram_pages) - set(existing_followers.values_list('page_id', flat=True)))
+#     if unconfirmed_followers:
+#         template = get_template(account_id)
+#         unconfirmed_followers = [int(i) for i in unconfirmed_followers]
+#         cl.direct_send(text=template, user_ids=unconfirmed_followers)
+#         for page_id in unconfirmed_followers:
+#             add_follower(page_id, account_id)
 
 
 # @app_insta.task
