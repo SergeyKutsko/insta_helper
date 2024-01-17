@@ -203,6 +203,9 @@ class MessageTemplate(models.Model):
         verbose_name = 'Шаблон повідомлень'
         verbose_name_plural = 'Шаблони повідомлень'
 
+    def __str__(self):
+        return self.value
+
 
 class SendMessageByUrl(models.Model):
     url = models.CharField(max_length=255, verbose_name="Лінк на сторінку")
