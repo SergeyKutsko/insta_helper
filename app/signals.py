@@ -27,6 +27,6 @@ def instagram_user_saved(sender, instance, created, **kwargs):
 def create_user_profile(sender, instance, created, **kwargs):
     if created and not instance.is_superuser:
         for i in range(1, 16):
-            MessageTemplate.create(key=f'MESSAGE_{i}',
-                                   value=m_template_value_default,
-                                   user=instance.user)
+            MessageTemplate.objects.create(key=f'MESSAGE_{i}',
+                                           value=m_template_value_default,
+                                           user=instance)

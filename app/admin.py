@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import InstagramUser, Limit, Template, SystemSetting, UserId, ListName, SendMessageByList, SendMessageByUrl
+from .models import InstagramUser, Limit, Template, SystemSetting, UserId, ListName, SendMessageByList, \
+    SendMessageByUrl, MessageTemplate
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -247,6 +248,11 @@ class SendMessageByUrlAdmin(admin.ModelAdmin):
 
         return fieldsets
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'direct_message':
+            kwargs['queryset'] = MessageTemplate.objects.filter(user=request.user.id).only('value')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 @admin.register(SendMessageByList)
 class SendMessageByListAdmin(admin.ModelAdmin):
@@ -296,4 +302,44 @@ class SendMessageByListAdmin(admin.ModelAdmin):
         if db_field.name == "accounts":
             kwargs["queryset"] = InstagramUser.objects.filter(user=request.user.id)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'direct_message':
+            kwargs['queryset'] = MessageTemplate.objects.filter(user=request.user.id).only('value')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(MessageTemplate)
+class MessageTemplateAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(user=request.user)
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            fieldsets = [
+                ('Дані', {'fields': ['key', 'value', 'user',
+                                     ]
+                          }
+                 ),
+            ]
+        else:
+            fieldsets = [
+                ('Дані', {'fields': ['key', 'value',
+                                     ]
+                          }
+                 ),
+            ]
+
+        return fieldsets
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return [f.name for f in self.model._meta.fields]
+        else:
+            return ['key', 'value',
+                    ]
 
