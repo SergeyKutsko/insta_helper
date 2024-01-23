@@ -2,10 +2,42 @@ from django.contrib import admin
 from .models import InstagramUser, Limit, Template, SystemSetting, UserId, ListName, SendMessageByList, \
     SendMessageByUrl, MessageTemplate
 from import_export.admin import ImportExportModelAdmin
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group, Permission
 from django.db import IntegrityError
 from django import forms
 from .forms import UserIdForm
+from django.contrib.contenttypes.models import ContentType
+
+
+models = {
+    'InstagramUser':                {'view': True, 'add': True, 'change': True, 'delete': True},
+    'UserId':                       {'view': True, 'add': True, 'change': True, 'delete': True},
+    'ListName':                     {'view': True, 'add': True, 'change': True, 'delete': True},
+    'SendMessageByList':            {'view': True, 'add': True, 'change': True, 'delete': True},
+    'SendMessageByUrl':             {'view': True, 'add': True, 'change': True, 'delete': True},
+    'MessageTemplate':              {'view': True, 'add': False, 'change': True, 'delete': False},
+    'Template':                     {'view': True, 'add': False, 'change': True, 'delete': False},
+}
+
+
+def add_permissions_to_group(group_name, permissions):
+    group, created = Group.objects.get_or_create(name=group_name)
+
+    for model, permissions in permissions.items():
+        content_type = ContentType.objects.get(app_label='app', model=model.lower())
+        for permission_type, allowed in permissions.items():
+            codename = f'{permission_type}_{model.lower()}'
+            try:
+                permission = Permission.objects.get(codename=codename, content_type=content_type)
+            except Permission.DoesNotExist:
+                permission = Permission.objects.create(codename=codename, name=f'Can {permission_type} {model}',
+                                                       content_type=content_type)
+
+            if allowed:
+                group.permissions.add(permission)
+
+
+add_permissions_to_group('Partner', models)
 
 
 @admin.register(InstagramUser)
@@ -58,6 +90,21 @@ class InstagramUserAdmin(admin.ModelAdmin):
 @admin.register(Limit)
 class LimitAdmin(admin.ModelAdmin):
     list_display = ['name', 'limit', 'description']
+
+    def has_change_permission(self, request, obj=None):
+        if obj is not None and not request.user.is_superuser:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is not None and not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def has_add_permission(self, request, obj=None):
+        if obj is not None and not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
 
 
 @admin.register(Template)
@@ -328,7 +375,7 @@ class MessageTemplateAdmin(admin.ModelAdmin):
             ]
         else:
             fieldsets = [
-                ('Дані', {'fields': ['key', 'value',
+                ('Дані', {'fields': ['value',
                                      ]
                           }
                  ),
