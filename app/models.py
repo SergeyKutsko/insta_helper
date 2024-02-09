@@ -191,8 +191,25 @@ class Followers(models.Model):
         return self.page_id
 
 
+class NameMessageTemplate(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Назва")
+    user = models.ForeignKey(User,
+                             null=True, blank=True,
+                             on_delete=models.CASCADE,
+                             verbose_name="Користувач")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Список для шаблонів'
+        verbose_name_plural = 'Списки для шаблонів'
+        unique_together = ['name', 'user']
+
+
 class MessageTemplate(models.Model):
-    key = models.CharField(max_length=255, verbose_name="Ключ")
+    key = models.ForeignKey(NameMessageTemplate, on_delete=models.CASCADE,
+                            verbose_name="Список")
     value = models.TextField(verbose_name="Текст повідомлення")
     user = models.ForeignKey(User,
                              null=True, blank=True,
@@ -209,9 +226,9 @@ class MessageTemplate(models.Model):
 
 class SendMessageByUrl(models.Model):
     url = models.CharField(max_length=255, verbose_name="Лінк на сторінку")
-    direct_message = models.ForeignKey(MessageTemplate,
+    direct_message = models.ForeignKey(NameMessageTemplate,
                                        on_delete=models.CASCADE,
-                                       verbose_name="Текст повідомлення")
+                                       verbose_name="Список повідомлень")
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE,
                              verbose_name="Користувач")
@@ -227,9 +244,9 @@ class SendMessageByUrl(models.Model):
 
 class SendMessageByList(models.Model):
     lists = models.ManyToManyField(ListName, verbose_name="Списки")
-    direct_message = models.ForeignKey(MessageTemplate,
+    direct_message = models.ForeignKey(NameMessageTemplate,
                                        on_delete=models.CASCADE,
-                                       verbose_name="Текст повідомлення")
+                                       verbose_name="Список повідомлень")
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE,
                              verbose_name="Користувач")

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import InstagramUser, Limit, Template, SystemSetting, UserId, ListName, SendMessageByList, \
-    SendMessageByUrl, MessageTemplate
+    SendMessageByUrl, MessageTemplate, NameMessageTemplate
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.models import User, Group, Permission
 from django.db import IntegrityError
@@ -11,12 +11,14 @@ from django.contrib.contenttypes.models import ContentType
 
 models = {
     'InstagramUser':                {'view': True, 'add': True, 'change': True, 'delete': True},
+    'NameMessageTemplate':          {'view': True, 'add': True, 'change': True, 'delete': False},
     'UserId':                       {'view': True, 'add': True, 'change': True, 'delete': True},
     'ListName':                     {'view': True, 'add': True, 'change': True, 'delete': True},
     'SendMessageByList':            {'view': True, 'add': True, 'change': True, 'delete': True},
     'SendMessageByUrl':             {'view': True, 'add': True, 'change': True, 'delete': True},
-    'MessageTemplate':              {'view': True, 'add': False, 'change': True, 'delete': False},
+    'MessageTemplate':              {'view': True, 'add': True, 'change': True, 'delete': True},
     'Template':                     {'view': True, 'add': False, 'change': True, 'delete': False},
+
 }
 
 
@@ -365,6 +367,16 @@ class MessageTemplateAdmin(admin.ModelAdmin):
             return qs
         return qs.filter(user=request.user)
 
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser:
+            obj.user = User.objects.get(pk=request.user.id)
+        super().save_model(request, obj, form, change)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'key':
+            kwargs['queryset'] = NameMessageTemplate.objects.filter(user=request.user.id).only('name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
             fieldsets = [
@@ -375,7 +387,7 @@ class MessageTemplateAdmin(admin.ModelAdmin):
             ]
         else:
             fieldsets = [
-                ('Дані', {'fields': ['value',
+                ('Дані', {'fields': ['key', 'value',
                                      ]
                           }
                  ),
@@ -390,3 +402,42 @@ class MessageTemplateAdmin(admin.ModelAdmin):
             return ['key', 'value',
                     ]
 
+
+@admin.register(NameMessageTemplate)
+class NameMessageTemplateAdmin(admin.ModelAdmin):
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        if not request.user.is_superuser and not obj.user:
+            obj.user = User.objects.get(pk=request.user.id)
+        super().save_model(request, obj, form, change)
+
+    def get_fieldsets(self, request, obj=None):
+        if request.user.is_superuser:
+            fieldsets = [
+                ('Дані', {'fields': ['name', 'user',
+                                     ]
+                          }
+                 ),
+            ]
+        else:
+            fieldsets = [
+                ('Дані', {'fields': ['name',
+                                     ]
+                          }
+                 ),
+            ]
+
+        return fieldsets
+
+    def get_list_display(self, request):
+        if request.user.is_superuser:
+            return [f.name for f in self.model._meta.fields]
+        else:
+            return ['name',
+                    ]
