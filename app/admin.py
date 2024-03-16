@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import InstagramUser, Limit, Template, SystemSetting, UserId, ListName, SendMessageByList, \
-    SendMessageByUrl, MessageTemplate, NameMessageTemplate
+    SendMessageByUrl, MessageTemplate, NameMessageTemplate, Task
 from import_export.admin import ImportExportModelAdmin
 from django.contrib.auth.models import User, Group, Permission
 from django.db import IntegrityError
@@ -10,12 +10,12 @@ from django.contrib.contenttypes.models import ContentType
 
 
 models = {
-    'InstagramUser':                {'view': True, 'add': True, 'change': True, 'delete': True},
+    'InstagramUser':                {'view': True, 'add': True, 'change': True, 'delete': False},
     'NameMessageTemplate':          {'view': True, 'add': True, 'change': True, 'delete': False},
     'UserId':                       {'view': True, 'add': True, 'change': True, 'delete': True},
     'ListName':                     {'view': True, 'add': True, 'change': True, 'delete': True},
-    'SendMessageByList':            {'view': True, 'add': True, 'change': True, 'delete': True},
-    'SendMessageByUrl':             {'view': True, 'add': True, 'change': True, 'delete': True},
+    'SendMessageByList':            {'view': True, 'add': True, 'change': False, 'delete': True},
+    'SendMessageByUrl':             {'view': True, 'add': True, 'change': False, 'delete': True},
     'MessageTemplate':              {'view': True, 'add': True, 'change': True, 'delete': True},
     'Template':                     {'view': True, 'add': False, 'change': True, 'delete': False},
 
@@ -62,25 +62,26 @@ class InstagramUserAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return [f.name for f in self.model._meta.fields]
         else:
-            return ['login', 'age', 'system', 'country',
+            return ['login', 'age', 'country',
                     'country_code', 'locale', 'timezone',
+                    'active'
                     ]
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
             fieldsets = [
-                ('Дані', {'fields': ['login', 'password', 'age', 'system',
+                ('Дані', {'fields': ['login', 'password', 'age',
                                      'country', 'country_code', 'locale',
-                                     'user', 'timezone',
+                                     'active', 'user', 'timezone',
                                      ]
                           }
                  ),
             ]
         else:
             fieldsets = [
-                ('Дані', {'fields': ['login', 'password', 'age', 'system',
+                ('Дані', {'fields': ['login', 'password', 'age',
                                      'country', 'country_code', 'locale',
-                                     'timezone',
+                                     'active', 'timezone',
                                      ]
                           }
                  ),
@@ -266,7 +267,7 @@ class SendMessageByUrlAdmin(admin.ModelAdmin):
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == "accounts":
-            kwargs["queryset"] = InstagramUser.objects.filter(user=request.user.id)
+            kwargs["queryset"] = InstagramUser.objects.filter(user=request.user.id, active=True)
 
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
@@ -275,7 +276,7 @@ class SendMessageByUrlAdmin(admin.ModelAdmin):
             return [f.name for f in self.model._meta.fields]
         else:
             return ['url', 'direct_message',
-                    'user', 'accounts', ]
+                    ]
 
     def get_fieldsets(self, request, obj=None):
         if request.user.is_superuser:
@@ -299,7 +300,7 @@ class SendMessageByUrlAdmin(admin.ModelAdmin):
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'direct_message':
-            kwargs['queryset'] = MessageTemplate.objects.filter(user=request.user.id).only('value')
+            kwargs['queryset'] = NameMessageTemplate.objects.filter(user=request.user.id)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -321,8 +322,8 @@ class SendMessageByListAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return [f.name for f in self.model._meta.fields]
         else:
-            return ['lists', 'direct_message',
-                    'accounts', 'created_at',
+            return ['direct_message',
+                    'created_at',
                     ]
 
     def get_fieldsets(self, request, obj=None):
@@ -349,12 +350,12 @@ class SendMessageByListAdmin(admin.ModelAdmin):
         if db_field.name == "lists":
             kwargs["queryset"] = ListName.objects.filter(user=request.user.id)
         if db_field.name == "accounts":
-            kwargs["queryset"] = InstagramUser.objects.filter(user=request.user.id)
+            kwargs["queryset"] = InstagramUser.objects.filter(user=request.user.id, active=True)
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'direct_message':
-            kwargs['queryset'] = MessageTemplate.objects.filter(user=request.user.id).only('value')
+            kwargs['queryset'] = NameMessageTemplate.objects.filter(user=request.user.id)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
@@ -440,4 +441,12 @@ class NameMessageTemplateAdmin(admin.ModelAdmin):
             return [f.name for f in self.model._meta.fields]
         else:
             return ['name',
+                    ]
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ['account', 'direct_message',
+                    'url', 'list', 'task_type',
+                    'user', 'created_at', 'complited',
                     ]

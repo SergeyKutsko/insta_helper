@@ -24,10 +24,10 @@ class InstagramUser(models.Model):
                            verbose_name='Вік профілю (дні)')
     user = models.ForeignKey(User, null=True, blank=True,
                              on_delete=models.CASCADE, verbose_name="Користувач")
-    system = models.BooleanField(default=False, verbose_name='Системний акаунт')
     country = models.CharField(max_length=255, validators=[MaxLengthValidator(limit_value=255)],
                                verbose_name='Країна для акаунта', default='UA')
     country_code = models.IntegerField(default=380, verbose_name='Телефонний код для країни')
+    active = models.BooleanField(default=True, verbose_name='Активний акаунт')
     locale = models.CharField(max_length=255, validators=[MaxLengthValidator(limit_value=255)],
                               verbose_name='Локація для країни', default='uk_UA')
     timezone = models.IntegerField(default=7200, verbose_name='Таймзона для країни')
@@ -74,7 +74,7 @@ class Limit(models.Model):
     description = models.CharField(max_length=255, null=True, blank=True, verbose_name="Опис")
 
     def __str__(self):
-        return str(self.limit)
+        return self.limit
 
     class Meta:
         verbose_name = 'Обмеження інстаграма'
@@ -85,7 +85,7 @@ class Limit(models.Model):
         limit_value = Limit.objects.filter(name=name).values('limit').first()
         if limit_value is not None:
             return int(limit_value.get('limit', default))
-        return None
+        return default
 
 
 class Template(models.Model):
@@ -221,7 +221,7 @@ class MessageTemplate(models.Model):
         verbose_name_plural = 'Шаблони повідомлень'
 
     def __str__(self):
-        return self.value
+        return self.key.name
 
 
 class SendMessageByUrl(models.Model):
@@ -236,6 +236,9 @@ class SendMessageByUrl(models.Model):
                                       verbose_name="Аккаунти")
 
     created_at = models.DateTimeField(editable=False, auto_now_add=True, verbose_name='Створено')
+
+    def __abs__(self):
+        return self.direct_message
 
     class Meta:
         verbose_name = 'Розсилка по аккаунту'
@@ -256,9 +259,62 @@ class SendMessageByList(models.Model):
     created_at = models.DateTimeField(editable=False, auto_now_add=True,
                                       verbose_name='Створено')
 
+    def __str__(self):
+        return self.direct_message.name
+
     class Meta:
         verbose_name = 'Розсилка по списку'
         verbose_name_plural = 'Розсилки по списку'
+
+
+class AccountCounterTasks(models.Model):
+    account = models.OneToOneField(InstagramUser, on_delete=models.CASCADE)
+    counter = models.PositiveSmallIntegerField(default=0)
+    user = models.ForeignKey(User, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+
+    def __str__(self):
+        return self.counter
+
+    class Meta:
+        verbose_name = 'Лічильник для завдання'
+        verbose_name_plural = 'Лічильник для завдань'
+        unique_together = ('account', 'user')
+
+
+class Task(models.Model):
+    class TypeTask(models.TextChoices):
+        URL = 'URL', 'url'
+        LIST = 'LIST', 'list'
+        DIRECT = 'DIRECT', 'direct'
+
+    account = models.ForeignKey(InstagramUser, null=True, blank=True,
+                                on_delete=models.CASCADE, verbose_name="Аккаунт")
+    direct_message = models.ForeignKey(NameMessageTemplate,
+                                       on_delete=models.CASCADE,
+                                       verbose_name="Список повідомлень")
+    url = models.CharField(max_length=255, null=True, blank=True)
+    list = models.ForeignKey(ListName, null=True, blank=True, on_delete=models.CASCADE,
+                             verbose_name="Список користувачів")
+    task_type = models.CharField(max_length=6, default=TypeTask.DIRECT, choices=TypeTask.choices,
+                                 verbose_name='Тип завдання')
+    user = models.ForeignKey(User, null=True, blank=True,
+                             on_delete=models.CASCADE, verbose_name="Користувач")
+    created_at = models.DateTimeField(editable=False, auto_now_add=True)
+    complited = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.task_type
+
+    class Meta:
+        verbose_name = 'Завдання'
+        verbose_name_plural = 'Завдання'
+
+
+
+
+
+
 
 
 
