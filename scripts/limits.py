@@ -10,6 +10,7 @@ limits = {'LIMIT_IP': (10, 'Кількість сторінок на 1 IP'),    
           'MAX_DELAY': (4, 'Максимальна затримка дій'),                       # max delay after each request (sec)
           'MIN_DIRECT': (7, 'Мінімальна кількість повідомлень (за мин)'),     # min delay after send message (minutes)
           'MAX_DIRECT': (10, 'Максимальна кількість повідомлень (за мин)'),   # max delay after send message (minutes)
+          'MESSAGE_IN_DIRECT_NO_FOLLOWERS': (35, 'Максимальна кількість повідомлень в дірект (не підписникам)')
 }
 
 
